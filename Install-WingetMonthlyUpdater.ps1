@@ -237,11 +237,65 @@ function Register-OrReplaceTask {
     Register-ScheduledTask @params | Out-Null
 }
 
+function Set-MonthlyCalendarTrigger {
+    <#
+    .SYNOPSIS
+        Adds a monthly CalendarTrigger to an already-registered task.
+
+    .NOTES
+        New-ScheduledTaskTrigger has no -Monthly parameter set, and hand-building the
+        MSFT_TaskMonthlyTrigger CIM instance client-side is unreliable (Register-/
+        Set-ScheduledTask reject it with "The parameter is incorrect"). The supported
+        way to get a monthly trigger is to export the task's real XML (which already
+        contains an empty <Triggers/> element in the right schema position) and inject
+        a <CalendarTrigger> node into it, then re-register from that XML.
+    #>
+    param(
+        [string] $Name,
+        [int] $Day,
+        [datetime] $At
+    )
+    [xml] $doc = Export-ScheduledTask -TaskName $Name -TaskPath $TaskFolder
+    $ns = $doc.Task.NamespaceURI
+    # An empty <Triggers/> element is adapted by PowerShell to a plain string, not an
+    # XmlElement, so it must be located via the DOM instead of the dotted property.
+    $triggersNode = $doc.Task.GetElementsByTagName('Triggers')[0]
+
+    $calTrigger = $doc.CreateElement('CalendarTrigger', $ns)
+
+    $startBoundary = $doc.CreateElement('StartBoundary', $ns)
+    $startBoundary.InnerText = (Get-Date).Date.Add($At.TimeOfDay).ToString('yyyy-MM-ddTHH:mm:ss')
+    $calTrigger.AppendChild($startBoundary) | Out-Null
+
+    $enabled = $doc.CreateElement('Enabled', $ns)
+    $enabled.InnerText = 'true'
+    $calTrigger.AppendChild($enabled) | Out-Null
+
+    $scheduleByMonth = $doc.CreateElement('ScheduleByMonth', $ns)
+    $daysOfMonth = $doc.CreateElement('DaysOfMonth', $ns)
+    $dayNode = $doc.CreateElement('Day', $ns)
+    $dayNode.InnerText = "$Day"
+    $daysOfMonth.AppendChild($dayNode) | Out-Null
+    $scheduleByMonth.AppendChild($daysOfMonth) | Out-Null
+
+    $monthsNode = $doc.CreateElement('Months', $ns)
+    foreach ($m in @('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December')) {
+        $monthsNode.AppendChild($doc.CreateElement($m, $ns)) | Out-Null
+    }
+    $scheduleByMonth.AppendChild($monthsNode) | Out-Null
+    $calTrigger.AppendChild($scheduleByMonth) | Out-Null
+
+    $triggersNode.AppendChild($calTrigger) | Out-Null
+
+    Unregister-ScheduledTask -TaskName $Name -TaskPath $TaskFolder -Confirm:$false
+    Register-ScheduledTask -TaskName $Name -TaskPath $TaskFolder -Xml $doc.OuterXml | Out-Null
+}
+
 # Monthly Prompt: fires every month on the configured day/time, in the signed-in user's session.
-$monthlyTrigger = New-ScheduledTaskTrigger -Monthly -DaysOfMonth $Day -At $parsedTime
-Register-OrReplaceTask -Name $MonthlyTask -Trigger $monthlyTrigger -Action $promptAction `
+Register-OrReplaceTask -Name $MonthlyTask -Trigger $null -Action $promptAction `
     -Principal $interactivePrincipal -Settings $promptSettings `
     -Description 'Shows a monthly popup asking the signed-in user to confirm, postpone, or skip winget application updates.'
+Set-MonthlyCalendarTrigger -Name $MonthlyTask -Day $Day -At $parsedTime
 
 # Retry Prompt: created with no trigger; Show-UpdatePrompt.ps1 arms/disarms it when postponing.
 Register-OrReplaceTask -Name $RetryTask -Trigger $null -Action $promptAction `
