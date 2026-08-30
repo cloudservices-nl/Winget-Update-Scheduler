@@ -45,6 +45,40 @@ Just re-run the installer with new values. It replaces the existing scheduled ta
 and installed scripts in place — re-running never creates duplicates, and any pending
 postpone/skip state is reset along with the new schedule.
 
+## MSI installer
+
+An MSI can be built from the current repository sources with the WiX Toolset project in
+`Installer\`. The build restores the pinned WiX SDK through `dotnet`, so only the .NET
+8 SDK is required:
+
+```powershell
+.\Installer\Build-Msi.ps1 -Version 1.0.0
+```
+
+The output is `Installer\bin\Release\WingetMonthlyUpdater.msi`. The MSI embeds the
+current installer and every runtime payload script, then runs the same supported
+PowerShell install/uninstall paths. Rebuild the MSI for each release; source changes
+are automatically included at build time without copying code into the MSI project.
+
+Install it silently with the default schedule:
+
+```powershell
+msiexec.exe /i .\WingetMonthlyUpdater.msi /qn /norestart SCHEDULEDAY=1 SCHEDULETIME=16:00
+```
+
+`SCHEDULEDAY` accepts `1` through `28`; `SCHEDULETIME` uses 24-hour `HH:mm`. Uninstall
+with:
+
+```powershell
+msiexec.exe /x .\WingetMonthlyUpdater.msi /qn /norestart
+```
+
+## Intune
+
+For Intune Win32 deployments, see [INTUNE-WIN32-PACKAGING.md](INTUNE-WIN32-PACKAGING.md)
+for copy-ready content-prep, app information, program, requirements, detection,
+dependency, and assignment fields.
+
 ## Scheduled tasks created
 
 Folder: `\WingetMonthlyUpdater\`

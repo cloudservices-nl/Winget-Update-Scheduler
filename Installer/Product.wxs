@@ -1,0 +1,56 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="Winget Monthly Updater"
+           Manufacturer="Cloud Services NL"
+           Version="$(var.ProductVersion)"
+           UpgradeCode="{F2C015E7-8E6B-4854-A6D9-0DB875433CB0}"
+           Scope="perMachine">
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Winget Monthly Updater is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+    <Property Id="SCHEDULEDAY" Value="1" />
+    <Property Id="SCHEDULETIME" Value="16:00" />
+
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <Directory Id="INSTALLFOLDER" Name="Winget Monthly Updater">
+        <Component Id="InstallerFiles" Bitness="always64">
+          <File Id="InstallScript" Source="..\Install-WingetMonthlyUpdater.ps1" KeyPath="yes" />
+        </Component>
+        <Directory Id="PAYLOADFOLDER" Name="Payload">
+          <Component Id="CommonPayloadFile" Bitness="always64">
+            <File Id="CommonScript" Source="..\Payload\Common.ps1" />
+          </Component>
+          <Component Id="PromptPayloadFile" Bitness="always64">
+            <File Id="PromptScript" Source="..\Payload\Show-UpdatePrompt.ps1" />
+          </Component>
+          <Component Id="UpdatePayloadFile" Bitness="always64">
+            <File Id="UpdateScript" Source="..\Payload\Invoke-WingetUpdate.ps1" />
+          </Component>
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+
+    <Feature Id="MainFeature" Title="Winget Monthly Updater" Level="1">
+      <ComponentRef Id="InstallerFiles" />
+      <ComponentRef Id="CommonPayloadFile" />
+      <ComponentRef Id="PromptPayloadFile" />
+      <ComponentRef Id="UpdatePayloadFile" />
+    </Feature>
+
+    <CustomAction Id="InstallUpdater"
+                  Directory="SystemFolder"
+                  ExeCommand="WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;[#InstallScript]&quot; -Day [SCHEDULEDAY] -Time &quot;[SCHEDULETIME]&quot;"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="check" />
+    <CustomAction Id="UninstallUpdater"
+                  Directory="SystemFolder"
+                  ExeCommand="WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;[#InstallScript]&quot; -Uninstall"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="check" />
+
+    <InstallExecuteSequence>
+      <Custom Action="InstallUpdater" After="InstallFiles" Condition="NOT Installed" />
+      <Custom Action="UninstallUpdater" Before="RemoveFiles" Condition="REMOVE=&quot;ALL&quot;" />
+    </InstallExecuteSequence>
+  </Package>
+</Wix>
