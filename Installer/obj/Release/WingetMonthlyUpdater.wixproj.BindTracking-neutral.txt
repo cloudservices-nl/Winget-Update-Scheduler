@@ -1,0 +1,7 @@
+BuiltPdbOutput	C:\Code\WingetMonthlyUpdater\Installer\obj\Release\WingetMonthlyUpdater.wixpdb
+BuiltTargetOutput	C:\Code\WingetMonthlyUpdater\Installer\obj\Release\WingetMonthlyUpdater.msi
+Input	..\Install-WingetMonthlyUpdater.ps1
+Input	..\Payload\Common.ps1
+Input	..\Payload\Invoke-WingetUpdate.ps1
+Input	..\Payload\Show-UpdatePrompt.ps1
+Intermediate	C:\Code\WingetMonthlyUpdater\Installer\obj\Release\#cab1.cab

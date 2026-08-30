@@ -21,7 +21,7 @@ Copy the resulting `Install-WingetMonthlyUpdater.intunewin` file to Intune.
 |---|---|
 | Name | `Winget Monthly Updater` |
 | Description | `Shows the signed-in user a monthly confirmation prompt, then runs winget application updates as SYSTEM after approval.` |
-| Publisher | `Cloud Services NL` |
+| Publisher | `Cloudservices.nl` |
 | App Version | `1.0.0` |
 | Category | `Computer management` |
 | Show this as a featured app in the Company Portal | `No` |

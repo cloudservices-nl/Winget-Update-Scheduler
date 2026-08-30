@@ -1,0 +1,6 @@
+C:\Code\WingetMonthlyUpdater\Installer\obj\Release\WingetMonthlyUpdater.wixproj.CoreCompileInputs.cache
+C:\Code\WingetMonthlyUpdater\Installer\obj\Release\WingetMonthlyUpdater.msi
+C:\Code\WingetMonthlyUpdater\Installer\obj\Release\WingetMonthlyUpdater.wixpdb
+C:\Code\WingetMonthlyUpdater\Installer\obj\Release\WingetMonthlyUpdater.wixproj.BindTracking-neutral.txt
+C:\Code\WingetMonthlyUpdater\Installer\bin\Release\WingetMonthlyUpdater.msi
+C:\Code\WingetMonthlyUpdater\Installer\bin\Release\WingetMonthlyUpdater.wixpdb
